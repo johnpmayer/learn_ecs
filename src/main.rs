@@ -2,7 +2,9 @@
 #[macro_use]
 extern crate ecs;
 
-use ecs::{BuildData,World};
+use ecs::{BuildData, World};
+use ecs::system::{Process, System};
+use ecs::world::{DataHelper};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Position {
@@ -17,12 +19,27 @@ components! {
     }
 }
 
+pub struct PrintMessage(pub String);
+
+impl System for PrintMessage {
+    type Components = MyComponents;
+    type Services = ();
+}
+
+impl Process for PrintMessage {
+    fn process(&mut self, _: &mut DataHelper<MyComponents, ()>) {
+        println!("{}", &self.0);
+    }
+}
+
 systems! {
-    struct MySystems<MyComponents, ()>;
+    struct MySystems<MyComponents, ()> {
+        print_msg: PrintMessage = PrintMessage("Hello, PrintMessage System!".to_string())
+    }
 }
 
 fn main() {
-    println!("Hello, world!");
+    println!("Hello, ecs!");
     let mut world = World::<MySystems>::new();
 
     let entity_rm = world.create_entity(());
@@ -35,4 +52,6 @@ fn main() {
     });
     assert!(entity_rm != entity);
     println!("{:?}", entity);
+
+    world.update();
 }
