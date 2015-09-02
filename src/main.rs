@@ -24,6 +24,7 @@ pub struct PrintMessage(pub String);
 impl System for PrintMessage {
     type Components = MyComponents;
     type Services = ();
+    fn is_active(&self) -> bool { false }
 }
 
 impl Process for PrintMessage {
@@ -40,21 +41,30 @@ systems! {
 
 fn main() {
     println!("Hello, ecs!");
+
+    // Create a new esc world
     let mut world = World::<MySystems>::new();
 
-    let entity_rm = world.create_entity(());
-    println!("{:?}", entity_rm);
-    world.remove_entity(entity_rm);
+    // Testing that entities are unique
+    let entity1 = world.create_entity(());
+    println!("{:?}", entity1);
+    world.remove_entity(entity1);
+    let entity2 = world.create_entity(());
+    assert!(entity1 != entity2);
+    println!("{:?}", entity2);
+    world.remove_entity(entity2);
 
+    // Creating an entity with initialized components
     let entity = world.create_entity(|entity: BuildData<MyComponents>, data: &mut MyComponents| {
         data.position.add(&entity, Position { x : 0.0, y : 0.0 });
         data.respawn.add(&entity, Position { x : 0.0, y : 0.0 });
     });
-    assert!(entity_rm != entity);
     println!("{:?}", entity);
 
-    world.update();
- 
+    // Manually run the system process
+    process!(world, print_msg); 
+
+    // Updating a system
     world.systems.print_msg.0 = "Hello, Updated PrintMessage!".to_string();
-    world.update();
+    process!(world, print_msg); 
 }
