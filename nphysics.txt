@@ -1,0 +1,33 @@
+[–]HeroesGrave ecs-rs, cereal 2 points 1 month ago* 
+I had a quick looks through nphysics, and it should be possible to have a RigidBodyHandle as a component, and put the nphysics World as a service.
+
+components! {
+  struct Components {
+    #[hot] body_handle: RigidBodyHandle // or #[cold]
+    // Other components etc.
+  }
+}
+
+services! {
+  struct Services {
+    nphysics_world: World = World::new() // Be sure not to confuse imports and use the ecs-rs World
+    // Other services etc.
+  }
+}
+
+From there you can just use data.services.nphysics_world.foo() or world.services.nphysics_world.foo() (if accessing from outside a system) to call whatever function on the nphysics world, and the RigidBodyHandle is just another component.
+I don't expect it to play well with serialisation, however. If that's a concern, get back to me and I'll see if I can find a solution.
+permalinksavereportgive goldreply
+
+[–]7sins 2 points 1 month ago 
+How exactly does a Service work in ecs-rs? And, since I'm already asking, what is the purpose of an InteractSystem?
+permalinksaveparentreportgive goldreply
+
+[–]HeroesGrave ecs-rs, cereal 2 points 1 month ago 
+A "service" is anything you want to be accessible from any system that isn't a component (the world map, delta time, etc.) They can easily be accessed from outside the ecs by using world.services.my_service.
+An interact system allows you to process two different kinds of entity at the same time. A common case I've used is in combat systems, where you have damage sources (melee hitbox, projectile, etc.) and damage targets (various living entities). You can then iterate through each damage source for each entity (or vice versa if your game mechanics need it).
+permalinksaveparentreportgive goldreply
+
+[–]7sins 2 points 1 month ago 
+Awesome, thanks! :D
+permalinksaveparentreportgive goldreply
