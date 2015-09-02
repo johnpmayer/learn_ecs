@@ -54,4 +54,7 @@ fn main() {
     println!("{:?}", entity);
 
     world.update();
+ 
+    world.systems.print_msg.0 = "Hello, Updated PrintMessage!".to_string();
+    world.update();
 }
